@@ -2,12 +2,17 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:flutter_ringtone_player/flutter_ringtone_player.dart';
 import 'package:video_player/video_player.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 const url =
     'https://flutter.github.io/assets-for-api-docs/assets/videos/butterfly.mp4';
 
 // function to start app building
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
   runApp(
     MaterialApp(
       initialRoute: '/',
@@ -55,7 +60,36 @@ class HomeRoute extends StatelessWidget {
                               return Videos();
                             }));
                           },
-                          child: Text("Alert ${index + 1}"),
+                          child: StreamBuilder<QuerySnapshot>(
+                            stream: FirebaseFirestore.instance
+                                .collection('users')
+                                .snapshots(),
+                            builder: (BuildContext context,
+                                AsyncSnapshot<QuerySnapshot> snapshot) {
+                              if (snapshot.hasError) {
+                                return const Text('Something went wrong');
+                              }
+
+                              if (snapshot.connectionState ==
+                                  ConnectionState.waiting) {
+                                return const Text("Loading");
+                              }
+
+                              return ListView(
+                                children: snapshot.data!.docs
+                                    .map((DocumentSnapshot document) {
+                                      Map<String, dynamic> data = document
+                                          .data()! as Map<String, dynamic>;
+                                      return ListTile(
+                                        title: Text(data["0MxL974b4FtqOIWN2z2I"]
+                                            ["name"]),
+                                      );
+                                    })
+                                    .toList()
+                                    .cast(),
+                              );
+                            },
+                          ),
                         ),
                       ));
                 }, childCount: 5),
@@ -205,22 +239,6 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
           );
         }
       },
-
-      // floatingActionButton: FloatingActionButton(
-      //   onPressed: () {
-      //     // Wrap the play or pause in a call to `setState`. This ensures the
-      //     // correct icon is shown.
-      //     setState(() {
-      //       // If the video is playing, pause it.
-      //       // If the video is paused, play it.
-      //       _controller.play();
-      //     });
-      //   },
-      //   // Display the correct icon depending on the state of the player.
-      //   child: Icon(
-      //     _controller.value.isPlaying ? Icons.pause : Icons.play_arrow,
-      //   ),
-      // ),
     );
   }
 }

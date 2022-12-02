@@ -36,6 +36,7 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.2
+  firebase_core: ^2.3.0
 
 dev_dependencies:
   flutter_test:
@@ -49,6 +50,7 @@ dev_dependencies:
   flutter_lints: ^2.0.0
   video_player: ^2.2.18
   flutter_ringtone_player: 
+  cloud_firestore:
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 
@@ -94,6 +96,3 @@ flutter:
   assets:
     - assets/images/
     - assets/videos/
-    - input_data.json
-    - CCTV_data.json
-
