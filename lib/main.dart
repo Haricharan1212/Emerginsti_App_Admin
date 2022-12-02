@@ -2,19 +2,20 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'dart:async';
+import 'package:flutter_ringtone_player/flutter_ringtone_player.dart';
 import 'package:video_player/video_player.dart';
 
 // function to start app building
 void main() {
   runApp(
     MaterialApp(
-      initialRoute: '/home',
+      initialRoute: '/',
       routes: {
-        '/home': (context) => HomeRoute(),
-        '/second': (context) => MyApp(),
+        '/': (context) => HomeRoute(),
+        '/videos': (context) => Videos(),
         // '/third': (context) => const ThirdRoute(),
       },
-      home: MyApp(),
+      // home: HomeRoute(),
     ),
   );
 }
@@ -26,30 +27,48 @@ class HomeRoute extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-        home: Scaffold(
-            appBar: AppBar(
-              title: Text("Admin Side"),
-            ),
-            body: Container(
-                width: MediaQuery.of(context).size.width * 1.0,
-                height: MediaQuery.of(context).size.height * 0.3,
-                alignment: Alignment.topCenter,
-                child: SizedBox(
-                  width: double.infinity,
-                  height: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.pushNamed(context, '/second');
-                    },
-                    child: Text("Hi"),
-                  ),
-                ))));
+      home: Scaffold(
+          appBar: AppBar(
+            title: Text("Alerts"),
+          ),
+          body: CustomScrollView(
+            slivers: <Widget>[
+              SliverFixedExtentList(
+                itemExtent: MediaQuery.of(context).size.width * 0.8,
+                delegate: SliverChildBuilderDelegate(
+                    (BuildContext context, int index) {
+                  return Container(
+                      width: MediaQuery.of(context).size.width,
+                      height: MediaQuery.of(context).size.height * 0.3,
+                      margin: const EdgeInsets.all(20),
+                      padding: const EdgeInsets.all(30),
+                      alignment: Alignment.topCenter,
+                      child: SizedBox(
+                        width: double.infinity,
+                        height: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            FlutterRingtonePlayer.playNotification();
+                            Navigator.push(context,
+                                MaterialPageRoute(builder: (context) {
+                              return Videos();
+                            }));
+                            // Navigator.pushNamed(context, "/videos");
+                          },
+                          child: Text("Hi"),
+                        ),
+                      ));
+                }, childCount: 5),
+              ),
+            ],
+          )),
+    );
   }
 }
 
 @override
-class MyApp extends StatelessWidget {
-  MyApp({super.key});
+class Videos extends StatelessWidget {
+  Videos({super.key});
 
   late VideoPlayerController controller;
 
@@ -62,12 +81,19 @@ class MyApp extends StatelessWidget {
           ),
           body: CustomScrollView(
             slivers: <Widget>[
-              // const SliverAppBar(
-              //   pinned: true,
-              //   expandedHeight: 100.0,
-              //   flexibleSpace: FlexibleSpaceBar(
-              //     title: Text('CCTV Cameras'),
-              //   ),
+              SliverAppBar(
+                  pinned: true,
+                  expandedHeight: 50.0,
+                  collapsedHeight: 100.0,
+                  titleSpacing: 0.0,
+                  flexibleSpace: FlexibleSpaceBar(
+                    centerTitle: true,
+                    title: ElevatedButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        child: Text("Problem averted!")),
+                  )),
               // ),
               // SliverGrid(
               //   gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
@@ -92,20 +118,16 @@ class MyApp extends StatelessWidget {
                 delegate: SliverChildBuilderDelegate(
                     (BuildContext context, int index) {
                   return Container(
-                      alignment: Alignment.center,
-                      color: Colors.grey,
-                      child: Scaffold(
+                    alignment: Alignment.center,
+                    color: Colors.grey,
+                    child: Scaffold(
                         appBar: AppBar(title: Text("CCTV Camera ${index + 1}")),
-                        body: MaterialApp(home: VideoPlayerScreen()),
-                      ));
+                        body: VideoPlayerScreen()),
+                  );
                 }, childCount: 5),
               ),
             ],
-          )
-
-          // Image.asset("assets/images/img1.jpg")
-          // VideoPlayer(VideoPlayerController.asset('http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4~')),
-          ),
+          )),
     );
   }
 }
