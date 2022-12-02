@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'dart:convert';
-import 'package:flutter/services.dart';
 import 'dart:async';
 import 'package:flutter_ringtone_player/flutter_ringtone_player.dart';
 import 'package:video_player/video_player.dart';
@@ -22,14 +20,14 @@ void main() {
 
 @override
 class HomeRoute extends StatelessWidget {
-  HomeRoute({super.key});
+  const HomeRoute({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
           appBar: AppBar(
-            title: Text("Alerts"),
+            title: const Text("Alerts"),
           ),
           body: CustomScrollView(
             slivers: <Widget>[
@@ -55,7 +53,7 @@ class HomeRoute extends StatelessWidget {
                             }));
                             // Navigator.pushNamed(context, "/videos");
                           },
-                          child: Text("Hi"),
+                          child: Text("Alert ${index + 1}"),
                         ),
                       ));
                 }, childCount: 5),
@@ -210,10 +208,4 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
       // ),
     );
   }
-}
-
-Future<String> readJson() async {
-  final String response = await rootBundle.loadString('input_data.json');
-  final data = await json.decode(response);
-  return data;
 }
