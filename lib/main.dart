@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter_ringtone_player/flutter_ringtone_player.dart';
 import 'package:video_player/video_player.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'firebase_options.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 const url =
@@ -53,44 +52,14 @@ class HomeRoute extends StatelessWidget {
                         width: double.infinity,
                         height: double.infinity,
                         child: ElevatedButton(
-                          onPressed: () {
-                            FlutterRingtonePlayer.playNotification();
-                            Navigator.push(context,
-                                MaterialPageRoute(builder: (context) {
-                              return Videos();
-                            }));
-                          },
-                          child: StreamBuilder<QuerySnapshot>(
-                            stream: FirebaseFirestore.instance
-                                .collection('users')
-                                .snapshots(),
-                            builder: (BuildContext context,
-                                AsyncSnapshot<QuerySnapshot> snapshot) {
-                              if (snapshot.hasError) {
-                                return const Text('Something went wrong');
-                              }
-
-                              if (snapshot.connectionState ==
-                                  ConnectionState.waiting) {
-                                return const Text("Loading");
-                              }
-
-                              return ListView(
-                                children: snapshot.data!.docs
-                                    .map((DocumentSnapshot document) {
-                                      Map<String, dynamic> data = document
-                                          .data()! as Map<String, dynamic>;
-                                      return ListTile(
-                                        title: Text(data["0MxL974b4FtqOIWN2z2I"]
-                                            ["name"]),
-                                      );
-                                    })
-                                    .toList()
-                                    .cast(),
-                              );
+                            onPressed: () {
+                              FlutterRingtonePlayer.playNotification();
+                              Navigator.push(context,
+                                  MaterialPageRoute(builder: (context) {
+                                return Videos();
+                              }));
                             },
-                          ),
-                        ),
+                            child: Text("hi")),
                       ));
                 }, childCount: 5),
               ),
