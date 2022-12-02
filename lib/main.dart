@@ -3,6 +3,9 @@ import 'dart:async';
 import 'package:flutter_ringtone_player/flutter_ringtone_player.dart';
 import 'package:video_player/video_player.dart';
 
+const url =
+    'https://flutter.github.io/assets-for-api-docs/assets/videos/butterfly.mp4';
+
 // function to start app building
 void main() {
   runApp(
@@ -51,7 +54,6 @@ class HomeRoute extends StatelessWidget {
                                 MaterialPageRoute(builder: (context) {
                               return Videos();
                             }));
-                            // Navigator.pushNamed(context, "/videos");
                           },
                           child: Text("Alert ${index + 1}"),
                         ),
@@ -92,25 +94,6 @@ class Videos extends StatelessWidget {
                         },
                         child: Text("Problem averted!")),
                   )),
-              // ),
-              // SliverGrid(
-              //   gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-              //     maxCrossAxisExtent: 200.0,
-              //     mainAxisSpacing: 10.0,
-              //     crossAxisSpacing: 10.0,
-              //     childAspectRatio: 4.0,
-              //   ),
-              //   delegate: SliverChildBuilderDelegate(
-              //     (BuildContext context, int index) {
-              //       return Container(
-              //         alignment: Alignment.center,
-              //         // color: Colors.teal[100 * (index % 9)],
-              //         child: Image.asset("assets/images/img1.jpg"),
-              //       );
-              //     },
-              //     childCount: 5,
-              //   ),
-              // ),
               SliverFixedExtentList(
                 itemExtent: 240.0,
                 delegate: SliverChildBuilderDelegate(
@@ -120,13 +103,51 @@ class Videos extends StatelessWidget {
                     color: Colors.grey,
                     child: Scaffold(
                         appBar: AppBar(title: Text("CCTV Camera ${index + 1}")),
-                        body: VideoPlayerScreen()),
+                        body: InkWell(
+                            onTap: () {
+                              Navigator.push(context,
+                                  MaterialPageRoute(builder: (context) {
+                                return EnlargedVideo();
+                              }));
+                            },
+                            child: Container(
+                                width: MediaQuery.of(context).size.width,
+                                alignment: Alignment.topCenter,
+                                child: VideoPlayerScreen()))),
                   );
                 }, childCount: 5),
               ),
             ],
           )),
     );
+  }
+}
+
+@override
+class EnlargedVideo extends StatelessWidget {
+  EnlargedVideo({super.key});
+
+  late VideoPlayerController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+        home: Scaffold(
+      appBar: AppBar(
+        title: Text("CCTV Video"),
+      ),
+      body: Container(
+          alignment: Alignment.center,
+          color: Colors.grey,
+          child: Scaffold(
+              appBar: AppBar(title: Text("CCTV Camera")),
+              body: VideoPlayerScreen())),
+      bottomNavigationBar: ElevatedButton(
+          child: const Text("View Other Cameras"),
+          onPressed: () {
+            Navigator.pop(context);
+          }),
+    ));
   }
 }
 
@@ -145,17 +166,11 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   void initState() {
     super.initState();
 
-    // Create and store the VideoPlayerController. The VideoPlayerController
-    // offers several different constructors to play videos from assets, files,
-    // or the internet.
-    _controller = VideoPlayerController.network(
-        'https://flutter.github.io/assets-for-api-docs/assets/videos/butterfly.mp4',
+    _controller = VideoPlayerController.network(url,
         videoPlayerOptions: VideoPlayerOptions(mixWithOthers: true));
 
-    // Initialize the controller and store the Future for later use.
     _initializeVideoPlayerFuture = _controller.initialize();
 
-    // Use the controller to loop the video.
     _controller.setLooping(true);
     _controller.setVolume(0);
   }
