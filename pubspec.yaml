@@ -42,8 +42,6 @@ dependencies:
   flutter_ringtone_player: 
   cloud_firestore:
 
-
-
 dev_dependencies:
   flutter_test:
     sdk: flutter

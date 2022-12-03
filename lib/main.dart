@@ -7,15 +7,22 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:convert';
 import 'cameras.dart' as camera_data;
 import 'geo_sorter.dart' as geo_sorter;
+// import 'list_return.dart' as list_return;
+import 'enlarged_videos.dart' as enlarged_videos;
+import 'video_player_screen.dart' as video_player_screen;
 
 const url =
     'https://flutter.github.io/assets-for-api-docs/assets/videos/butterfly.mp4';
 
-// function to start app building
+int? len = 0;
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   camera_data.cameraCall();
+
+  len = await getDocsLen();
+
   runApp(
     MaterialApp(
       initialRoute: '/',
@@ -67,6 +74,7 @@ class _MyHomeRouteState extends State<HomeRoute> {
     final docRef = FirebaseFirestore.instance.collection("users");
     docRef.snapshots().listen((event) async {
       FlutterRingtonePlayer.playNotification();
+      len = await getDocsLen();
       setState(() {});
     });
   }
@@ -75,95 +83,71 @@ class _MyHomeRouteState extends State<HomeRoute> {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
-        appBar: AppBar(
-          title: const Text("Alerts"),
-        ),
-        body: CustomScrollView(
-          slivers: <Widget>[
-            SliverFixedExtentList(
-              itemExtent: MediaQuery.of(context).size.width * 0.8,
-              delegate: SliverChildBuilderDelegate(
-                childCount: 10,
-                (BuildContext context, int index) {
-                  return Container(
-                      width: MediaQuery.of(context).size.width,
-                      height: MediaQuery.of(context).size.height * 0.3,
-                      margin: const EdgeInsets.all(20),
-                      padding: const EdgeInsets.all(30),
-                      alignment: Alignment.topCenter,
-                      child: SizedBox(
-                          width: double.infinity,
-                          height: double.infinity,
-                          child: ElevatedButton(
-                            onPressed: () {
-                              Navigator.push(context,
-                                  MaterialPageRoute(builder: (context) {
-                                return FutureBuilder(
-                                  future: getDocs(index),
-                                  builder: (context, snapshot) {
-                                    if (snapshot.connectionState ==
-                                        ConnectionState.done) {
-                                      return Videos(
-                                        array: geo_sorter.returnIndices(
-                                            snapshot.data?["latitude"],
-                                            snapshot.data?["longitude"],
-                                            camera_data.cameraDetails),
-                                        alertDocID: snapshot.data?["docID"],
-                                      );
-                                    } else {
-                                      return const Center(
-                                        child: CircularProgressIndicator(
-                                            color: Colors.white),
-                                      );
-                                    }
-                                  },
+          appBar: AppBar(
+            title: const Text("Alerts"),
+          ),
+          // body: ListView(children: returnListWidgets(returnedIndices))
+
+          body: ListView(
+            itemExtent: MediaQuery.of(context).size.width * 0.8,
+            children: [
+              for (int index = 0; index < len!; index++)
+                Container(
+                    width: MediaQuery.of(context).size.width,
+                    height: MediaQuery.of(context).size.height * 0.3,
+                    margin: const EdgeInsets.all(20),
+                    padding: const EdgeInsets.all(30),
+                    alignment: Alignment.topCenter,
+                    child: SizedBox(
+                        width: double.infinity,
+                        height: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.push(context,
+                                MaterialPageRoute(builder: (context) {
+                              return FutureBuilder(
+                                future: getDocs(index),
+                                builder: (context, snapshot) {
+                                  if (snapshot.connectionState ==
+                                      ConnectionState.done) {
+                                    return Videos(
+                                      array: geo_sorter.returnIndices(
+                                          snapshot.data?["latitude"],
+                                          snapshot.data?["longitude"],
+                                          camera_data.cameraDetails),
+                                      alertDocID: snapshot.data?["docID"],
+                                    );
+                                  } else {
+                                    return const Center(
+                                      child: CircularProgressIndicator(
+                                          color: Colors.white),
+                                    );
+                                  }
+                                },
+                              );
+                            }));
+                          },
+                          child: FutureBuilder(
+                            future: getDocs(index),
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState ==
+                                  ConnectionState.done) {
+                                return Text(
+                                    textAlign: TextAlign.center,
+                                    "${(snapshot.data?["name"])}\n${(snapshot.data?["email"])}\n${(snapshot.data?["time_now"])}\nLatitude: ${snapshot.data?["latitude"]}  Longitude: ${snapshot.data?["longitude"]}");
+                              } else {
+                                return const Center(
+                                  child: CircularProgressIndicator(
+                                      color: Colors.white),
                                 );
-                              }));
+                              }
                             },
-                            child: FutureBuilder(
-                              future: getDocs(index),
-                              builder: (context, snapshot) {
-                                if (snapshot.connectionState ==
-                                    ConnectionState.done) {
-                                  return Text(
-                                      textAlign: TextAlign.center,
-                                      "${(snapshot.data?["name"])}\n${(snapshot.data?["email"])}\n${(snapshot.data?["time_now"])}\nLatitude: ${snapshot.data?["latitude"]}  Longitude: ${snapshot.data?["longitude"]}");
-                                } else {
-                                  return const Center(
-                                    child: CircularProgressIndicator(
-                                        color: Colors.white),
-                                  );
-                                }
-                              },
-                            ),
-                          )));
-                },
-              ),
-            )
-          ],
-        ),
-      ),
+                          ),
+                        )))
+            ],
+          )),
     );
   }
-}
-
-Future<int?> getDocsLen() async {
-  QuerySnapshot querySnapshot =
-      await FirebaseFirestore.instance.collection("users").get();
-
-  return querySnapshot.docs.length;
-}
-
-Future<Map<dynamic, dynamic>> getDocs(int i) async {
-  QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-      .collection("users")
-      .orderBy("time_now", descending: true)
-      .get();
-
-  Map<dynamic, dynamic> docVal =
-      await json.decode(json.encode(querySnapshot.docs[i].data()));
-  docVal['docID'] = querySnapshot.docs[i].id;
-  return docVal;
 }
 
 class Videos extends StatefulWidget {
@@ -220,13 +204,15 @@ class _Videos extends State<Videos> {
                         onTap: () {
                           Navigator.push(context,
                               MaterialPageRoute(builder: (context) {
-                            return EnlargedVideo(widget.array[index]);
+                            return enlarged_videos.EnlargedVideo(
+                                widget.array[index], url);
                           }));
                         },
                         child: Container(
                             width: MediaQuery.of(context).size.width,
                             alignment: Alignment.topCenter,
-                            child: const VideoPlayerScreen()))),
+                            child:
+                                video_player_screen.VideoPlayerScreen(url)))),
               );
             }, childCount: 5),
           ),
@@ -263,86 +249,21 @@ Future<void> removeUserID(String docID) async {
   users.doc(docID).delete();
 }
 
-@override
-class EnlargedVideo extends StatelessWidget {
-  EnlargedVideo(this.text) {
-    super.key;
-  }
+Future<int?> getDocsLen() async {
+  QuerySnapshot querySnapshot =
+      await FirebaseFirestore.instance.collection("users").get();
 
-  late VideoPlayerController controller;
-  String text;
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-        home: Scaffold(
-      appBar: AppBar(
-        title: const Text("CCTV Camera"),
-      ),
-      body: Container(
-          alignment: Alignment.center,
-          color: Colors.grey,
-          child: Scaffold(
-              appBar: AppBar(title: Text(this.text)),
-              body: const VideoPlayerScreen())),
-      bottomNavigationBar: ElevatedButton(
-          child: const Text("View Other Cameras"),
-          onPressed: () {
-            Navigator.pop(context);
-          }),
-    ));
-  }
+  return querySnapshot.docs.length;
 }
 
-class VideoPlayerScreen extends StatefulWidget {
-  const VideoPlayerScreen({super.key});
+Future<Map<dynamic, dynamic>> getDocs(int i) async {
+  QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+      .collection("users")
+      .orderBy("time_now", descending: true)
+      .get();
 
-  @override
-  State<VideoPlayerScreen> createState() => _VideoPlayerScreenState();
-}
-
-class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
-  late VideoPlayerController _controller;
-  late Future<void> _initializeVideoPlayerFuture;
-
-  @override
-  void initState() {
-    super.initState();
-
-    _controller = VideoPlayerController.network(url,
-        videoPlayerOptions: VideoPlayerOptions(mixWithOthers: true));
-
-    _initializeVideoPlayerFuture = _controller.initialize();
-
-    _controller.setLooping(true);
-    _controller.setVolume(0);
-  }
-
-  @override
-  void dispose() {
-    // Ensure disposing of the VideoPlayerController to free up resources.
-    _controller.dispose();
-
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return FutureBuilder(
-      future: _initializeVideoPlayerFuture,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.done) {
-          _controller.play();
-          return AspectRatio(
-            aspectRatio: _controller.value.aspectRatio,
-            child: VideoPlayer(_controller),
-          );
-        } else {
-          return const Center(
-            child: CircularProgressIndicator(),
-          );
-        }
-      },
-    );
-  }
+  Map<dynamic, dynamic> docVal =
+      await json.decode(json.encode(querySnapshot.docs[i].data()));
+  docVal['docID'] = querySnapshot.docs[i].id;
+  return docVal;
 }
