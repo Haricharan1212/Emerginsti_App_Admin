@@ -37,7 +37,7 @@ packages:
     source: hosted
     version: "1.1.1"
   cloud_firestore:
-    dependency: "direct dev"
+    dependency: "direct main"
     description:
       name: cloud_firestore
       url: "https://pub.dartlang.org"
@@ -64,6 +64,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.16.0"
+  counter:
+    dependency: "direct main"
+    description:
+      name: counter
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.2.2"
   csslib:
     dependency: transitive
     description:
@@ -133,7 +140,7 @@ packages:
     source: hosted
     version: "2.0.1"
   flutter_ringtone_player:
-    dependency: "direct dev"
+    dependency: "direct main"
     description:
       name: flutter_ringtone_player
       url: "https://pub.dartlang.org"
@@ -323,7 +330,7 @@ packages:
     source: hosted
     version: "2.1.2"
   video_player:
-    dependency: "direct dev"
+    dependency: "direct main"
     description:
       name: video_player
       url: "https://pub.dartlang.org"

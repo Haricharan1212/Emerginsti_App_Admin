@@ -1,7 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.insti_app_dev_stuff">
    <application
-        android:label="insti_app_dev_stuff"
+        android:label="Emerginsti Admin"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
