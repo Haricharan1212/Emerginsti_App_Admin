@@ -104,10 +104,12 @@ class _MyHomeRouteState extends State<HomeRoute> {
                                     if (snapshot.connectionState ==
                                         ConnectionState.done) {
                                       return Videos(
-                                          array: geo_sorter.returnIndices(
-                                              snapshot.data?["latitude"],
-                                              snapshot.data?["longitude"],
-                                              camera_data.cameraDetails));
+                                        array: geo_sorter.returnIndices(
+                                            snapshot.data?["latitude"],
+                                            snapshot.data?["longitude"],
+                                            camera_data.cameraDetails),
+                                        alertDocID: snapshot.data?["docID"],
+                                      );
                                     } else {
                                       return const Center(
                                         child: CircularProgressIndicator(
@@ -125,7 +127,7 @@ class _MyHomeRouteState extends State<HomeRoute> {
                                     ConnectionState.done) {
                                   return Text(
                                       textAlign: TextAlign.center,
-                                      "${(snapshot.data?["name"])}\n${(snapshot.data?["roll_no"])}\n${(snapshot.data?["time_now"])}\nLatitude: ${snapshot.data?["latitude"]}  Longitude: ${snapshot.data?["longitude"]}");
+                                      "${(snapshot.data?["name"])}\n${(snapshot.data?["email"])}\n${(snapshot.data?["time_now"])}\nLatitude: ${snapshot.data?["latitude"]}  Longitude: ${snapshot.data?["longitude"]}");
                                 } else {
                                   return const Center(
                                     child: CircularProgressIndicator(
@@ -160,13 +162,15 @@ Future<Map<dynamic, dynamic>> getDocs(int i) async {
 
   Map<dynamic, dynamic> docVal =
       await json.decode(json.encode(querySnapshot.docs[i].data()));
+  docVal['docID'] = querySnapshot.docs[i].id;
   return docVal;
 }
 
 class Videos extends StatefulWidget {
   List<String> array;
-
-  Videos({Key? key, required this.array}) : super(key: key);
+  String alertDocID;
+  Videos({Key? key, required this.array, required this.alertDocID})
+      : super(key: key);
 
   @override
   _Videos createState() => _Videos();
@@ -198,6 +202,7 @@ class _Videos extends State<Videos> {
                 centerTitle: true,
                 title: ElevatedButton(
                     onPressed: () {
+                      removeUserID(widget.alertDocID);
                       Navigator.pop(context);
                     },
                     child: const Text("Problem averted!")),
@@ -241,6 +246,21 @@ class _Videos extends State<Videos> {
       ),
     ));
   }
+}
+
+Future<void> removeUserID(String docID) async {
+  CollectionReference logging =
+      FirebaseFirestore.instance.collection("logging");
+  CollectionReference users = FirebaseFirestore.instance.collection("users");
+  DocumentSnapshot docSnapshot = await users.doc(docID).get();
+  await logging.add({
+    'name': docSnapshot["name"],
+    'email': docSnapshot["email"],
+    'latitude': docSnapshot["latitude"],
+    'longitude': docSnapshot["longitude"],
+    'time_now': docSnapshot["time_now"]
+  });
+  users.doc(docID).delete();
 }
 
 @override
