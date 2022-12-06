@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:flutter_ringtone_player/flutter_ringtone_player.dart';
-import 'package:video_player/video_player.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'dart:convert';
 import 'cameras.dart' as camera_data;
 import 'geo_sorter.dart' as geo_sorter;
-// import 'list_return.dart' as list_return;
-import 'enlarged_videos.dart' as enlarged_videos;
-import 'video_player_screen.dart' as video_player_screen;
+import 'videos.dart' as videos;
+import 'get_db.dart' as get_db;
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:workmanager/workmanager.dart';
 
 const url =
     'https://flutter.github.io/assets-for-api-docs/assets/videos/butterfly.mp4';
@@ -21,7 +20,7 @@ Future<void> main() async {
   await Firebase.initializeApp();
   camera_data.cameraCall();
 
-  len = await getDocsLen();
+  len = await get_db.getDocsLen();
 
   runApp(
     MaterialApp(
@@ -74,7 +73,7 @@ class _MyHomeRouteState extends State<HomeRoute> {
     final docRef = FirebaseFirestore.instance.collection("users");
     docRef.snapshots().listen((event) async {
       FlutterRingtonePlayer.playNotification();
-      len = await getDocsLen();
+      len = await get_db.getDocsLen();
       setState(() {});
     });
   }
@@ -106,17 +105,17 @@ class _MyHomeRouteState extends State<HomeRoute> {
                             Navigator.push(context,
                                 MaterialPageRoute(builder: (context) {
                               return FutureBuilder(
-                                future: getDocs(index),
+                                future: get_db.getDocs(index),
                                 builder: (context, snapshot) {
                                   if (snapshot.connectionState ==
                                       ConnectionState.done) {
-                                    return Videos(
-                                      array: geo_sorter.returnIndices(
-                                          snapshot.data?["latitude"],
-                                          snapshot.data?["longitude"],
-                                          camera_data.cameraDetails),
-                                      alertDocID: snapshot.data?["docID"],
-                                    );
+                                    return videos.Videos(
+                                        array: geo_sorter.returnIndices(
+                                            snapshot.data?["latitude"],
+                                            snapshot.data?["longitude"],
+                                            camera_data.cameraDetails),
+                                        alertDocID: snapshot.data?["docID"],
+                                        url: url);
                                   } else {
                                     return const Center(
                                       child: CircularProgressIndicator(
@@ -128,7 +127,7 @@ class _MyHomeRouteState extends State<HomeRoute> {
                             }));
                           },
                           child: FutureBuilder(
-                            future: getDocs(index),
+                            future: get_db.getDocs(index),
                             builder: (context, snapshot) {
                               if (snapshot.connectionState ==
                                   ConnectionState.done) {
@@ -148,122 +147,4 @@ class _MyHomeRouteState extends State<HomeRoute> {
           )),
     );
   }
-}
-
-class Videos extends StatefulWidget {
-  List<String> array;
-  String alertDocID;
-  Videos({Key? key, required this.array, required this.alertDocID})
-      : super(key: key);
-
-  @override
-  _Videos createState() => _Videos();
-}
-
-class _Videos extends State<Videos> {
-  @override
-  void initState() {
-    super.initState();
-  }
-
-  late VideoPlayerController controller;
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-        home: Scaffold(
-      appBar: AppBar(
-        title: const Text("CCTV Videos"),
-      ),
-      body: CustomScrollView(
-        slivers: <Widget>[
-          SliverAppBar(
-              pinned: true,
-              expandedHeight: 50.0,
-              collapsedHeight: 100.0,
-              titleSpacing: 0.0,
-              flexibleSpace: FlexibleSpaceBar(
-                centerTitle: true,
-                title: ElevatedButton(
-                    onPressed: () {
-                      removeUserID(widget.alertDocID);
-                      Navigator.pop(context);
-                    },
-                    child: const Text("Problem averted!")),
-              )),
-          SliverFixedExtentList(
-            itemExtent: 240.0,
-            delegate:
-                SliverChildBuilderDelegate((BuildContext context, int index) {
-              return Container(
-                alignment: Alignment.center,
-                color: Colors.grey,
-                child: Scaffold(
-                    appBar: AppBar(title: Text("${widget.array[index]}")),
-                    body: InkWell(
-                        onTap: () {
-                          Navigator.push(context,
-                              MaterialPageRoute(builder: (context) {
-                            return enlarged_videos.EnlargedVideo(
-                                widget.array[index], url);
-                          }));
-                        },
-                        child: Container(
-                            width: MediaQuery.of(context).size.width,
-                            alignment: Alignment.topCenter,
-                            child:
-                                video_player_screen.VideoPlayerScreen(url)))),
-              );
-            }, childCount: 5),
-          ),
-        ],
-      ),
-      floatingActionButton: CircleAvatar(
-        radius: 30,
-        backgroundColor: Colors.blue,
-        child: IconButton(
-            icon: const Icon(
-              Icons.arrow_back,
-              color: Colors.white,
-            ),
-            onPressed: () {
-              Navigator.pop(context);
-            }),
-      ),
-    ));
-  }
-}
-
-Future<void> removeUserID(String docID) async {
-  CollectionReference logging =
-      FirebaseFirestore.instance.collection("logging");
-  CollectionReference users = FirebaseFirestore.instance.collection("users");
-  DocumentSnapshot docSnapshot = await users.doc(docID).get();
-  await logging.add({
-    'name': docSnapshot["name"],
-    'email': docSnapshot["email"],
-    'latitude': docSnapshot["latitude"],
-    'longitude': docSnapshot["longitude"],
-    'time_now': docSnapshot["time_now"]
-  });
-  users.doc(docID).delete();
-}
-
-Future<int?> getDocsLen() async {
-  QuerySnapshot querySnapshot =
-      await FirebaseFirestore.instance.collection("users").get();
-
-  return querySnapshot.docs.length;
-}
-
-Future<Map<dynamic, dynamic>> getDocs(int i) async {
-  QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-      .collection("users")
-      .orderBy("time_now", descending: true)
-      .get();
-
-  Map<dynamic, dynamic> docVal =
-      await json.decode(json.encode(querySnapshot.docs[i].data()));
-  docVal['docID'] = querySnapshot.docs[i].id;
-  return docVal;
 }

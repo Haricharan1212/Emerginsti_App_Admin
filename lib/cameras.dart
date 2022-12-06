@@ -14,9 +14,7 @@ class CameraInfo {
           await json.decode(json.encode(querySnapshot.docs[i].data()));
 
       cameraDetails.add([
-        cameraDetailsMap["ip"].toString() +
-            "  " +
-            cameraDetailsMap["location"].toString(),
+        "${cameraDetailsMap["ip"]}  ${cameraDetailsMap["location"]}",
         cameraDetailsMap["lat"].toString(),
         cameraDetailsMap["lng"].toString()
       ]);
