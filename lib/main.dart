@@ -7,8 +7,6 @@ import 'cameras.dart' as camera_data;
 import 'geo_sorter.dart' as geo_sorter;
 import 'videos.dart' as videos;
 import 'get_db.dart' as get_db;
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:workmanager/workmanager.dart';
 
 const url =
     'https://flutter.github.io/assets-for-api-docs/assets/videos/butterfly.mp4';
