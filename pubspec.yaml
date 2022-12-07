@@ -41,6 +41,7 @@ dependencies:
   video_player: ^2.2.18
   flutter_ringtone_player: 
   cloud_firestore:
+  maps_launcher:
 
   workmanager: 
   flutter_local_notifications: 
@@ -100,4 +101,3 @@ flutter:
 
   assets:
     - assets/images/
-    - assets/videos/

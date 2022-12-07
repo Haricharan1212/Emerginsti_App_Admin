@@ -4,13 +4,18 @@ import 'package:flutter/material.dart';
 import 'video_player_screen.dart' as video_player_screen;
 import 'enlarged_video.dart' as enlarged_video;
 import 'package:video_player/video_player.dart';
+import 'map_calling.dart' as maps;
 
 class Videos extends StatefulWidget {
   List<String> array;
   String alertDocID;
   String url;
+  double lat;
+  double lon;
   Videos(
       {Key? key,
+      required this.lat,
+      required this.lon,
       required this.array,
       required this.alertDocID,
       required this.url})
@@ -40,16 +45,25 @@ class _Videos extends State<Videos> {
           SliverAppBar(
               pinned: true,
               expandedHeight: 50.0,
-              collapsedHeight: 100.0,
+              collapsedHeight: 125.0,
               titleSpacing: 0.0,
               flexibleSpace: FlexibleSpaceBar(
                 centerTitle: true,
-                title: ElevatedButton(
-                    onPressed: () {
-                      removeUserID(widget.alertDocID);
-                      Navigator.pop(context);
-                    },
-                    child: const Text("Problem averted!")),
+                title: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      ElevatedButton(
+                          onPressed: () {
+                            removeUserID(widget.alertDocID);
+                            Navigator.pop(context);
+                          },
+                          child: const Text("Problem averted!")),
+                      ElevatedButton(
+                          onPressed: () {
+                            maps.openMap(widget.lat, widget.lon);
+                          },
+                          child: const Text("GMaps"))
+                    ]),
               )),
           SliverFixedExtentList(
             itemExtent: 240.0,

@@ -108,6 +108,10 @@ class _MyHomeRouteState extends State<HomeRoute> {
                                   if (snapshot.connectionState ==
                                       ConnectionState.done) {
                                     return videos.Videos(
+                                        lat: double.parse(
+                                            snapshot.data?["latitude"]),
+                                        lon: double.parse(
+                                            snapshot.data?["longitude"]),
                                         array: geo_sorter.returnIndices(
                                             snapshot.data?["latitude"],
                                             snapshot.data?["longitude"],
